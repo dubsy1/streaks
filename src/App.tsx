@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Task, UserStats, TaskType } from './types';
 import { loadTasks, saveTasks, loadStats, saveStats } from './utils/storage';
 import { getTodayDateString } from './utils/dateUtils';
-import { isCompletedToday, shouldShowDaily } from './utils/streakUtils';
+import { isCompletedToday, shouldShowDaily, calculateStreak } from './utils/streakUtils';
 import { addExperience, addGold, takeDamage, calculateReward, calculateDamage } from './utils/gameUtils';
+import { checkDailyReset, setLastCompletionTime, canCompleteHabit, getRemainingCooldown } from './utils/dailyResetUtils';
 import { HATS } from './data/hats';
+import { MAX_HEALTH } from './types';
 import StatsBar from './components/StatsBar';
 import TaskItem from './components/TaskItem';
 import AddTaskForm from './components/AddTaskForm';
@@ -15,16 +17,30 @@ import { Zap } from 'lucide-react';
 
 type View = 'tasks' | 'character' | 'shop' | 'inventory';
 
+const HABIT_COOLDOWN_MINUTES = 5; // Prevent spam clicking habits
+
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [filter, setFilter] = useState<'all' | TaskType>('all');
   const [currentView, setCurrentView] = useState<View>('tasks');
+  const [notification, setNotification] = useState<string | null>(null);
 
   // Load data on mount
   useEffect(() => {
     setTasks(loadTasks());
-    setStats(loadStats());
+    const loadedStats = loadStats();
+    setStats(loadedStats);
+
+    // Check for daily reset and incomplete dailies
+    const { needsReset, incompleteDailies } = checkDailyReset(loadTasks());
+    if (needsReset && incompleteDailies.length > 0) {
+      // Damage for each incomplete daily
+      const totalDamage = incompleteDailies.reduce((sum, task) => sum + calculateDamage(task), 0);
+      const newStats = takeDamage(loadedStats, totalDamage);
+      setStats(newStats);
+      showNotification(`❌ Lost ${totalDamage.toFixed(1)} HP for ${incompleteDailies.length} incomplete dailies!`);
+    }
   }, []);
 
   // Save tasks whenever they change
@@ -40,6 +56,11 @@ function App() {
       saveStats(stats);
     }
   }, [stats]);
+
+  const showNotification = (message: string) => {
+    setNotification(message);
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   const addTask = (taskData: {
     title: string;
@@ -80,7 +101,7 @@ function App() {
         // Bad habit - restore health
         setStats({
           ...stats,
-          health: Math.min(50, stats.health + calculateDamage(task)),
+          health: Math.min(MAX_HEALTH, stats.health + calculateDamage(task)),
         });
       } else {
         // Remove rewards
@@ -91,23 +112,59 @@ function App() {
         });
       }
     } else {
+      // Check habit cooldown
+      if (task.type === 'habit' && !canCompleteHabit(taskId, HABIT_COOLDOWN_MINUTES)) {
+        const remaining = getRemainingCooldown(taskId, HABIT_COOLDOWN_MINUTES);
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+        showNotification(`⏳ Cooldown: ${minutes}m ${seconds}s remaining`);
+        return;
+      }
+
       // Complete task - add today's date
-      setTasks(tasks.map(t =>
+      const updatedTasks = tasks.map(t =>
         t.id === taskId
           ? { ...t, completedDates: [...t.completedDates, today] }
           : t
-      ));
+      );
+      setTasks(updatedTasks);
+
+      // Set cooldown for habits
+      if (task.type === 'habit') {
+        setLastCompletionTime(taskId);
+      }
+
+      // Calculate streak bonus
+      const updatedTask = updatedTasks.find(t => t.id === taskId)!;
+      const streak = calculateStreak(updatedTask);
+      const streakBonus = streak >= 7 ? 1.5 : streak >= 3 ? 1.2 : 1.0;
 
       // Grant rewards or damage
       if (task.type === 'habit' && !task.isPositive) {
         // Bad habit - take damage
-        setStats(takeDamage(stats, calculateDamage(task)));
-      } else {
-        // Good task - grant rewards
-        const { xp, gold } = calculateReward(task);
-        let newStats = addExperience(stats, xp);
-        newStats = addGold(newStats, gold);
+        const damage = calculateDamage(task);
+        const newStats = takeDamage(stats, damage);
         setStats(newStats);
+        showNotification(`💔 -${damage.toFixed(1)} HP`);
+      } else {
+        // Good task - grant rewards with streak bonus
+        const { xp, gold } = calculateReward(task);
+        const bonusXp = xp * streakBonus;
+        const bonusGold = gold * streakBonus;
+
+        const oldLevel = stats.level;
+        let newStats = addExperience(stats, bonusXp);
+        newStats = addGold(newStats, bonusGold);
+        setStats(newStats);
+
+        // Level up notification
+        if (newStats.level > oldLevel) {
+          showNotification(`🎉 LEVEL UP! Now level ${newStats.level}!`);
+        } else if (streakBonus > 1) {
+          showNotification(`🔥 ${streak} day streak! +${bonusXp.toFixed(1)} XP, +${bonusGold.toFixed(1)} gold`);
+        } else {
+          showNotification(`✅ +${bonusXp.toFixed(1)} XP, +${bonusGold.toFixed(1)} gold`);
+        }
       }
     }
   };
@@ -126,13 +183,13 @@ function App() {
 
     // Check if already owned
     if (stats.ownedHats.includes(hatId)) {
-      alert('You already own this hat!');
+      showNotification('❌ You already own this hat!');
       return;
     }
 
     // Check if can afford
     if (stats.gold < hat.price) {
-      alert('Not enough gold!');
+      showNotification(`❌ Need ${(hat.price - stats.gold).toFixed(1)} more gold!`);
       return;
     }
 
@@ -142,14 +199,17 @@ function App() {
       gold: stats.gold - hat.price,
       ownedHats: [...stats.ownedHats, hatId],
     });
+    showNotification(`🎩 Purchased ${hat.name}!`);
   };
 
   const equipHat = (hatId: string | undefined) => {
     if (!stats) return;
+    const hat = hatId ? HATS.find(h => h.id === hatId) : undefined;
     setStats({
       ...stats,
       equippedHat: hatId,
     });
+    showNotification(hat ? `👤 Equipped ${hat.name}!` : '👤 Hat removed');
   };
 
   const getFilteredTasks = () => {
@@ -180,6 +240,15 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Notification Toast */}
+      {notification && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
+          <div className="bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg text-center font-medium">
+            {notification}
+          </div>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -190,8 +259,8 @@ function App() {
           <p className="text-gray-600">Track your habits, build streaks, level up!</p>
         </div>
 
-        {/* Stats */}
-        <StatsBar stats={stats} />
+        {/* Stats with Character - Always visible */}
+        <StatsBar stats={stats} equippedHat={equippedHat} />
 
         {/* Navigation Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto">
