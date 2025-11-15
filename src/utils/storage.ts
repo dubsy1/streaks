@@ -24,7 +24,19 @@ export const saveTasks = (tasks: Task[]): void => {
 export const loadStats = (): UserStats => {
   try {
     const data = localStorage.getItem(STATS_KEY);
-    return data ? JSON.parse(data) : {
+    if (data) {
+      const parsed = JSON.parse(data);
+      // Ensure backward compatibility - add missing fields
+      return {
+        level: parsed.level || 1,
+        experience: parsed.experience || 0,
+        health: parsed.health !== undefined ? parsed.health : MAX_HEALTH,
+        gold: parsed.gold || 0,
+        equippedHat: parsed.equippedHat,
+        ownedHats: parsed.ownedHats || [],
+      };
+    }
+    return {
       level: 1,
       experience: 0,
       health: MAX_HEALTH,
