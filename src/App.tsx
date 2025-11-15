@@ -1,61 +1,132 @@
 import { useState, useEffect } from 'react';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { Task, UserStats, TaskType } from './types';
 import { loadTasks, saveTasks, loadStats, saveStats } from './utils/storage';
+import {
+  saveTasksToCloud,
+  saveStatsToCloud,
+  loadTasksFromCloud,
+  loadStatsFromCloud,
+  migrateLocalDataToCloud
+} from './utils/cloudSync';
 import { getTodayDateString } from './utils/dateUtils';
 import { isCompletedToday, shouldShowDaily, calculateStreak } from './utils/streakUtils';
 import { addExperience, addGold, takeDamage, calculateReward, calculateDamage } from './utils/gameUtils';
 import { checkDailyReset, setLastCompletionTime, canCompleteHabit, getRemainingCooldown } from './utils/dailyResetUtils';
 import { HATS } from './data/hats';
 import { MAX_HEALTH } from './types';
+import { auth } from './config/firebase';
+import LoginScreen from './components/LoginScreen';
 import StatsBar from './components/StatsBar';
 import TaskItem from './components/TaskItem';
 import AddTaskForm from './components/AddTaskForm';
 import CharacterDisplay from './components/CharacterDisplay';
 import Shop from './components/Shop';
 import Inventory from './components/Inventory';
-import { Zap } from 'lucide-react';
+import { Zap, LogOut } from 'lucide-react';
 
 type View = 'tasks' | 'character' | 'shop' | 'inventory';
 
 const HABIT_COOLDOWN_MINUTES = 5; // Prevent spam clicking habits
 
 function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [filter, setFilter] = useState<'all' | TaskType>('all');
   const [currentView, setCurrentView] = useState<View>('tasks');
   const [notification, setNotification] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
-  // Load data on mount
+  // Monitor authentication state
   useEffect(() => {
-    setTasks(loadTasks());
-    const loadedStats = loadStats();
-    setStats(loadedStats);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      setAuthLoading(false);
 
-    // Check for daily reset and incomplete dailies
-    const { needsReset, incompleteDailies } = checkDailyReset(loadTasks());
-    if (needsReset && incompleteDailies.length > 0) {
-      // Damage for each incomplete daily
-      const totalDamage = incompleteDailies.reduce((sum, task) => sum + calculateDamage(task), 0);
-      const newStats = takeDamage(loadedStats, totalDamage);
-      setStats(newStats);
-      showNotification(`❌ Lost ${totalDamage.toFixed(1)} HP for ${incompleteDailies.length} incomplete dailies!`);
-    }
+      if (firebaseUser) {
+        // User is signed in, load from cloud
+        await loadDataFromCloud(firebaseUser);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
+
+  // Load data from cloud
+  const loadDataFromCloud = async (firebaseUser: User) => {
+    setSyncing(true);
+    try {
+      // Load local data first (for migration)
+      const localTasks = loadTasks();
+      const localStats = loadStats();
+
+      // Migrate local data to cloud if needed
+      await migrateLocalDataToCloud(firebaseUser, localTasks, localStats);
+
+      // Load from cloud
+      const cloudTasks = await loadTasksFromCloud(firebaseUser);
+      const cloudStats = await loadStatsFromCloud(firebaseUser);
+
+      setTasks(cloudTasks.length > 0 ? cloudTasks : localTasks);
+      setStats(cloudStats || localStats);
+
+      // Check for daily reset
+      const { needsReset, incompleteDailies } = checkDailyReset(cloudTasks.length > 0 ? cloudTasks : localTasks);
+      if (needsReset && incompleteDailies.length > 0) {
+        const totalDamage = incompleteDailies.reduce((sum, task) => sum + calculateDamage(task), 0);
+        const currentStats = cloudStats || localStats;
+        const newStats = takeDamage(currentStats, totalDamage);
+        setStats(newStats);
+        await saveStatsToCloud(firebaseUser, newStats);
+        showNotification(`❌ Lost ${totalDamage.toFixed(1)} HP for ${incompleteDailies.length} incomplete dailies!`);
+      }
+    } catch (error) {
+      console.error('Error loading cloud data:', error);
+      // Fallback to local data
+      setTasks(loadTasks());
+      setStats(loadStats());
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   // Save tasks whenever they change
   useEffect(() => {
     if (tasks.length > 0 || tasks.length === 0) {
-      saveTasks(tasks);
+      saveTasks(tasks); // Save locally
+      if (user) {
+        saveTasksToCloud(user, tasks).catch(err =>
+          console.error('Error saving tasks to cloud:', err)
+        );
+      }
     }
-  }, [tasks]);
+  }, [tasks, user]);
 
   // Save stats whenever they change
   useEffect(() => {
     if (stats) {
-      saveStats(stats);
+      saveStats(stats); // Save locally
+      if (user) {
+        saveStatsToCloud(user, stats).catch(err =>
+          console.error('Error saving stats to cloud:', err)
+        );
+      }
     }
-  }, [stats]);
+  }, [stats, user]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      setTasks([]);
+      setStats(null);
+      showNotification('👋 Signed out successfully');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      showNotification('❌ Failed to sign out');
+    }
+  };
 
   const showNotification = (message: string) => {
     setNotification(message);
@@ -227,12 +298,30 @@ function App() {
   const filteredTasks = getFilteredTasks();
   const equippedHat = stats?.equippedHat ? HATS.find(h => h.id === stats.equippedHat) : undefined;
 
-  if (!stats) {
+  // Show loading while checking auth
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <Zap className="animate-pulse text-primary-500 mx-auto mb-4" size={48} />
           <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login screen if not authenticated
+  if (!user) {
+    return <LoginScreen onLogin={() => {}} />;
+  }
+
+  // Show loading while syncing
+  if (syncing || !stats) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <Zap className="animate-pulse text-primary-500 mx-auto mb-4" size={48} />
+          <p className="text-gray-600">Syncing your data...</p>
         </div>
       </div>
     );
@@ -251,12 +340,26 @@ function App() {
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Zap className="text-primary-600" size={32} />
-            <h1 className="text-4xl font-bold text-gray-800">Streaks</h1>
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Zap className="text-primary-600" size={32} />
+              <h1 className="text-4xl font-bold text-gray-800">Streaks</h1>
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium"
+            >
+              <LogOut size={16} />
+              <span className="hidden sm:inline">Sign Out</span>
+            </button>
           </div>
-          <p className="text-gray-600">Track your habits, build streaks, level up!</p>
+          <p className="text-gray-600 text-center">Track your habits, build streaks, level up!</p>
+          {user && !user.isAnonymous && (
+            <p className="text-xs text-gray-500 text-center mt-1">
+              Signed in as {user.email || user.displayName || 'Apple User'} • Syncing across devices ☁️
+            </p>
+          )}
         </div>
 
         {/* Stats with Character - Always visible */}
