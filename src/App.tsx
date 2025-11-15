@@ -4,15 +4,22 @@ import { loadTasks, saveTasks, loadStats, saveStats } from './utils/storage';
 import { getTodayDateString } from './utils/dateUtils';
 import { isCompletedToday, shouldShowDaily } from './utils/streakUtils';
 import { addExperience, addGold, takeDamage, calculateReward, calculateDamage } from './utils/gameUtils';
+import { HATS } from './data/hats';
 import StatsBar from './components/StatsBar';
 import TaskItem from './components/TaskItem';
 import AddTaskForm from './components/AddTaskForm';
+import CharacterDisplay from './components/CharacterDisplay';
+import Shop from './components/Shop';
+import Inventory from './components/Inventory';
 import { Zap } from 'lucide-react';
+
+type View = 'tasks' | 'character' | 'shop' | 'inventory';
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [filter, setFilter] = useState<'all' | TaskType>('all');
+  const [currentView, setCurrentView] = useState<View>('tasks');
 
   // Load data on mount
   useEffect(() => {
@@ -111,6 +118,40 @@ function App() {
     }
   };
 
+  const purchaseHat = (hatId: string) => {
+    if (!stats) return;
+
+    const hat = HATS.find(h => h.id === hatId);
+    if (!hat) return;
+
+    // Check if already owned
+    if (stats.ownedHats.includes(hatId)) {
+      alert('You already own this hat!');
+      return;
+    }
+
+    // Check if can afford
+    if (stats.gold < hat.price) {
+      alert('Not enough gold!');
+      return;
+    }
+
+    // Purchase hat
+    setStats({
+      ...stats,
+      gold: stats.gold - hat.price,
+      ownedHats: [...stats.ownedHats, hatId],
+    });
+  };
+
+  const equipHat = (hatId: string | undefined) => {
+    if (!stats) return;
+    setStats({
+      ...stats,
+      equippedHat: hatId,
+    });
+  };
+
   const getFilteredTasks = () => {
     let filtered = tasks.filter(t => !t.archived);
     if (filter !== 'all') {
@@ -124,6 +165,7 @@ function App() {
   };
 
   const filteredTasks = getFilteredTasks();
+  const equippedHat = stats?.equippedHat ? HATS.find(h => h.id === stats.equippedHat) : undefined;
 
   if (!stats) {
     return (
@@ -151,43 +193,82 @@ function App() {
         {/* Stats */}
         <StatsBar stats={stats} />
 
-        {/* Add Task Form */}
-        <AddTaskForm onAdd={addTask} />
-
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6">
-          {(['all', 'habit', 'daily', 'todo'] as const).map(f => (
+        {/* Navigation Tabs */}
+        <div className="flex gap-2 mb-6 overflow-x-auto">
+          {[
+            { id: 'tasks', label: '📝 Tasks' },
+            { id: 'character', label: '👤 Character' },
+            { id: 'shop', label: '🛒 Shop' },
+            { id: 'inventory', label: '🎒 Inventory' },
+          ].map(tab => (
             <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg font-medium capitalize transition-colors ${
-                filter === f
+              key={tab.id}
+              onClick={() => setCurrentView(tab.id as View)}
+              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                currentView === tab.id
                   ? 'bg-primary-500 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
-              {f}
+              {tab.label}
             </button>
           ))}
         </div>
 
-        {/* Tasks List */}
-        <div className="space-y-3">
-          {filteredTasks.length === 0 ? (
-            <div className="bg-white rounded-lg p-8 text-center">
-              <p className="text-gray-500">No tasks yet. Add one to get started!</p>
+        {/* Content based on current view */}
+        {currentView === 'tasks' && (
+          <>
+            {/* Add Task Form */}
+            <AddTaskForm onAdd={addTask} />
+
+            {/* Filter Tabs */}
+            <div className="flex gap-2 mb-6">
+              {(['all', 'habit', 'daily', 'todo'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-4 py-2 rounded-lg font-medium capitalize transition-colors ${
+                    filter === f
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
             </div>
-          ) : (
-            filteredTasks.map(task => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onToggle={toggleTask}
-                onDelete={deleteTask}
-              />
-            ))
-          )}
-        </div>
+
+            {/* Tasks List */}
+            <div className="space-y-3">
+              {filteredTasks.length === 0 ? (
+                <div className="bg-white rounded-lg p-8 text-center">
+                  <p className="text-gray-500">No tasks yet. Add one to get started!</p>
+                </div>
+              ) : (
+                filteredTasks.map(task => (
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    onToggle={toggleTask}
+                    onDelete={deleteTask}
+                  />
+                ))
+              )}
+            </div>
+          </>
+        )}
+
+        {currentView === 'character' && (
+          <CharacterDisplay equippedHat={equippedHat} />
+        )}
+
+        {currentView === 'shop' && (
+          <Shop stats={stats} onPurchase={purchaseHat} />
+        )}
+
+        {currentView === 'inventory' && (
+          <Inventory stats={stats} onEquip={equipHat} />
+        )}
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-600">

@@ -29,6 +29,8 @@ export const loadStats = (): UserStats => {
       experience: 0,
       health: MAX_HEALTH,
       gold: 0,
+      equippedHat: undefined,
+      ownedHats: [],
     };
   } catch (error) {
     console.error('Error loading stats:', error);
@@ -37,6 +39,8 @@ export const loadStats = (): UserStats => {
       experience: 0,
       health: MAX_HEALTH,
       gold: 0,
+      equippedHat: undefined,
+      ownedHats: [],
     };
   }
 };

@@ -19,6 +19,17 @@ export interface UserStats {
   experience: number;
   health: number;
   gold: number;
+  equippedHat?: string; // ID of equipped hat
+  ownedHats: string[]; // Array of owned hat IDs
+}
+
+export interface Hat {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  description: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
 export const DIFFICULTY_XP = {
