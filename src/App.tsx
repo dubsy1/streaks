@@ -356,8 +356,12 @@ function App() {
   const archivedTodos = getArchivedTodos();
   const equippedHat = stats?.equippedHat ? HATS.find(h => h.id === stats.equippedHat) : undefined;
 
+  // DEMO MODE: Skip auth for iOS testing
+  // Remove this after Firebase iOS is configured
+  const DEMO_MODE = true;
+
   // Show loading while checking auth
-  if (authLoading) {
+  if (authLoading && !DEMO_MODE) {
     return (
       <div className="min-h-screen bg-ios-groupedBackground flex items-center justify-center font-sf">
         <div className="text-center">
@@ -369,7 +373,7 @@ function App() {
   }
 
   // Show login screen if not authenticated
-  if (!user) {
+  if (!user && !DEMO_MODE) {
     return <LoginScreen onLogin={() => {}} />;
   }
 
@@ -406,7 +410,12 @@ function App() {
         <div className="pt-safe px-ios-md pb-ios-lg">
           <div className="flex items-center justify-between mb-1">
             <h1 className="text-[34px] font-bold text-ios-label tracking-tight leading-tight">Streaks</h1>
-            <UserProfile user={user} onSignOut={handleSignOut} />
+            {user && <UserProfile user={user} onSignOut={handleSignOut} />}
+            {DEMO_MODE && !user && (
+              <div className="w-9 h-9 rounded-full bg-ios-blue flex items-center justify-center text-white font-bold text-[15px]">
+                DM
+              </div>
+            )}
           </div>
         </div>
 
