@@ -57,7 +57,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full py-3.5 bg-ios-blue hover:bg-opacity-90 active:bg-opacity-80 text-white rounded-ios-lg font-semibold text-[17px] flex items-center justify-center gap-2 transition-all duration-150 active:scale-[0.98] shadow-ios-button mb-ios-md"
+        className="w-full py-3.5 bg-ios-blue hover:bg-opacity-90 active:bg-opacity-80 text-white rounded-ios-lg font-semibold text-[17px] flex items-center justify-center gap-2 transition-all duration-150 active:scale-[0.98] mb-ios-md"
       >
         <Plus size={22} strokeWidth={2.5} />
         Add Task
@@ -66,7 +66,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-ios-secondaryGroupedBackground rounded-ios-lg shadow-ios overflow-hidden mb-ios-md">
+    <form onSubmit={handleSubmit} className="bg-ios-secondaryGroupedBackground rounded-ios-lg border border-ios-gray6 overflow-hidden mb-ios-md">
       {/* Header */}
       <div className="flex items-center justify-between px-ios-md py-ios-sm border-b border-ios-gray6">
         <h3 className="text-[17px] font-semibold text-ios-label">New Task</h3>
@@ -122,7 +122,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
                 onClick={() => setType(t)}
                 className={`px-4 py-1.5 rounded-[7px] text-[13px] font-semibold capitalize transition-all duration-150 ${
                   type === t
-                    ? 'bg-ios-secondaryGroupedBackground text-ios-label shadow-ios-button'
+                    ? 'bg-ios-secondaryGroupedBackground text-ios-label'
                     : 'text-ios-label hover:bg-ios-secondaryGroupedBackground hover:bg-opacity-50'
                 }`}
               >
@@ -145,7 +145,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
                 onClick={() => setDifficulty(diff)}
                 className={`py-2 rounded-ios text-[13px] font-semibold capitalize transition-all duration-150 active:scale-95 ${
                   difficulty === diff
-                    ? 'bg-ios-blue text-white shadow-ios-button'
+                    ? 'bg-ios-blue text-white '
                     : 'bg-ios-fillSecondary text-ios-label hover:bg-ios-fillPrimary'
                 }`}
               >
@@ -167,7 +167,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
                 onClick={() => setIsPositive(true)}
                 className={`py-2.5 rounded-ios text-[15px] font-semibold transition-all duration-150 active:scale-95 ${
                   isPositive
-                    ? 'bg-ios-green text-white shadow-ios-button'
+                    ? 'bg-ios-green text-white '
                     : 'bg-ios-fillSecondary text-ios-label hover:bg-ios-fillPrimary'
                 }`}
               >
@@ -178,7 +178,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
                 onClick={() => setIsPositive(false)}
                 className={`py-2.5 rounded-ios text-[15px] font-semibold transition-all duration-150 active:scale-95 ${
                   !isPositive
-                    ? 'bg-ios-red text-white shadow-ios-button'
+                    ? 'bg-ios-red text-white '
                     : 'bg-ios-fillSecondary text-ios-label hover:bg-ios-fillPrimary'
                 }`}
               >
@@ -202,7 +202,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
                   onClick={() => toggleDay(index)}
                   className={`py-2 rounded-ios text-[11px] font-bold uppercase tracking-wide transition-all duration-150 active:scale-95 ${
                     repeatDays.includes(index)
-                      ? 'bg-ios-blue text-white shadow-ios-button'
+                      ? 'bg-ios-blue text-white '
                       : 'bg-ios-fillSecondary text-ios-secondaryLabel hover:bg-ios-fillPrimary'
                   }`}
                 >
@@ -216,7 +216,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full py-3.5 bg-ios-blue hover:bg-opacity-90 active:bg-opacity-80 text-white rounded-ios-lg font-semibold text-[17px] transition-all duration-150 active:scale-[0.98] shadow-ios-button"
+          className="w-full py-3.5 bg-ios-blue hover:bg-opacity-90 active:bg-opacity-80 text-white rounded-ios-lg font-semibold text-[17px] transition-all duration-150 active:scale-[0.98] "
         >
           Add Task
         </button>

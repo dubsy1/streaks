@@ -11,11 +11,11 @@ const StatsBar: React.FC<StatsBarProps> = ({ stats }) => {
   const healthPercentage = (stats.health / MAX_HEALTH) * 100;
 
   return (
-    <div className="bg-ios-secondaryGroupedBackground rounded-ios-lg shadow-ios overflow-hidden mb-ios-md">
+    <div className="bg-ios-secondaryGroupedBackground rounded-ios-lg overflow-hidden mb-ios-md border border-ios-gray6">
       {/* Level and Gold Row */}
       <div className="flex items-center justify-between px-ios-md py-ios-sm bg-gradient-to-b from-ios-fillSecondary to-transparent">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-full bg-ios-blue flex items-center justify-center shadow-ios-button">
+          <div className="w-9 h-9 rounded-full bg-ios-blue flex items-center justify-center">
             <Star className="text-white" size={20} fill="white" />
           </div>
           <div>
@@ -28,7 +28,7 @@ const StatsBar: React.FC<StatsBarProps> = ({ stats }) => {
             <p className="text-[11px] text-ios-tertiaryLabel font-medium uppercase tracking-wide text-right">Gold</p>
             <p className="text-[22px] font-bold text-ios-yellow leading-none text-right">{stats.gold.toFixed(0)}</p>
           </div>
-          <div className="w-9 h-9 rounded-full bg-ios-yellow flex items-center justify-center shadow-ios-button">
+          <div className="w-9 h-9 rounded-full bg-ios-yellow flex items-center justify-center">
             <Coins className="text-white" size={20} fill="white" />
           </div>
         </div>

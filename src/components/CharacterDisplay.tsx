@@ -7,7 +7,7 @@ interface CharacterDisplayProps {
 
 const CharacterDisplay: React.FC<CharacterDisplayProps> = ({ equippedHat }) => {
   return (
-    <div className="bg-ios-secondaryGroupedBackground rounded-ios-lg shadow-ios overflow-hidden mb-ios-md">
+    <div className="bg-ios-secondaryGroupedBackground rounded-ios-lg overflow-hidden mb-ios-md border border-ios-gray6">
       {/* Character Container */}
       <div className="relative flex justify-center items-center py-ios-xl px-ios-md bg-gradient-to-b from-ios-fillSecondary to-transparent">
         <div className="relative w-40 h-40">

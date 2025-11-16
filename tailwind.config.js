@@ -49,9 +49,9 @@ export default {
         'ios-xl': '20px',
       },
       boxShadow: {
-        'ios': '0 0 0 0.5px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.08)',
-        'ios-lg': '0 0 0 0.5px rgba(0, 0, 0, 0.04), 0 8px 16px rgba(0, 0, 0, 0.12)',
-        'ios-button': '0 1px 2px rgba(0, 0, 0, 0.08)',
+        'ios': 'none',
+        'ios-lg': 'none',
+        'ios-button': 'none',
       },
       fontFamily: {
         'sf': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],

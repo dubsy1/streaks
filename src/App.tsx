@@ -17,6 +17,8 @@ import { HATS } from './data/hats';
 import { MAX_HEALTH } from './types';
 import { auth } from './config/firebase';
 import LoginScreen from './components/LoginScreen';
+import Onboarding from './components/Onboarding';
+import UserProfile from './components/UserProfile';
 import StatsBar from './components/StatsBar';
 import TaskItem from './components/TaskItem';
 import AddTaskForm from './components/AddTaskForm';
@@ -26,7 +28,6 @@ import Inventory from './components/Inventory';
 import EditTaskModal from './components/EditTaskModal';
 import ArchivedTodos from './components/ArchivedTodos';
 import Statistics from './components/Statistics';
-import { Zap, LogOut } from 'lucide-react';
 
 type View = 'tasks' | 'shop' | 'inventory' | 'statistics';
 
@@ -42,6 +43,9 @@ function App() {
   const [notification, setNotification] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(
+    localStorage.getItem('onboardingComplete') === 'true'
+  );
 
   // Monitor authentication state
   useEffect(() => {
@@ -145,6 +149,13 @@ function App() {
       console.error('Sign out error:', error);
       showNotification('❌ Failed to sign out');
     }
+  };
+
+  const handleCompleteOnboarding = (data: { goal: string; focusArea: string }) => {
+    console.log('Onboarding completed:', data);
+    localStorage.setItem('onboardingComplete', 'true');
+    setHasCompletedOnboarding(true);
+    showNotification('🎉 Welcome to Streaks!');
   };
 
   const showNotification = (message: string) => {
@@ -350,7 +361,7 @@ function App() {
     return (
       <div className="min-h-screen bg-ios-groupedBackground flex items-center justify-center font-sf">
         <div className="text-center">
-          <Zap className="animate-pulse text-ios-blue mx-auto mb-4" size={48} />
+          <div className="animate-pulse text-ios-blue mx-auto mb-4 text-5xl">⚡</div>
           <p className="text-ios-secondaryLabel text-lg">Loading...</p>
         </div>
       </div>
@@ -362,12 +373,17 @@ function App() {
     return <LoginScreen onLogin={() => {}} />;
   }
 
+  // Show onboarding for new users
+  if (!hasCompletedOnboarding) {
+    return <Onboarding onComplete={handleCompleteOnboarding} />;
+  }
+
   // Show loading while syncing
   if (syncing || !stats) {
     return (
       <div className="min-h-screen bg-ios-groupedBackground flex items-center justify-center font-sf">
         <div className="text-center">
-          <Zap className="animate-pulse text-ios-blue mx-auto mb-4" size={48} />
+          <div className="animate-pulse text-ios-blue mx-auto mb-4">⚡</div>
           <p className="text-ios-secondaryLabel text-lg">Syncing your data...</p>
         </div>
       </div>
@@ -390,18 +406,8 @@ function App() {
         <div className="pt-safe px-ios-md pb-ios-lg">
           <div className="flex items-center justify-between mb-1">
             <h1 className="text-[34px] font-bold text-ios-label tracking-tight leading-tight">Streaks</h1>
-            <button
-              onClick={handleSignOut}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-ios-fillSecondary hover:bg-ios-fillPrimary active:scale-95 transition-all duration-150"
-            >
-              <LogOut size={18} className="text-ios-secondaryLabel" />
-            </button>
+            <UserProfile user={user} onSignOut={handleSignOut} />
           </div>
-          {user && !user.isAnonymous && (
-            <p className="text-[13px] text-ios-secondaryLabel font-medium tracking-tight">
-              {user.email || user.displayName || 'Apple User'}
-            </p>
-          )}
         </div>
 
         {/* Character Display - Always visible */}

@@ -21,7 +21,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit }) => {
   };
 
   return (
-    <div className={`bg-ios-secondaryGroupedBackground rounded-ios-lg shadow-ios overflow-hidden transition-all duration-200 ${
+    <div className={`bg-ios-secondaryGroupedBackground rounded-ios-lg border border-ios-gray6 overflow-hidden transition-all duration-200 ${
       completed ? 'opacity-60' : ''
     }`}>
       <div className="px-ios-md py-ios-sm flex items-center justify-between gap-3">
