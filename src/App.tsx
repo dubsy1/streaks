@@ -62,9 +62,12 @@ function App() {
   const loadDataFromCloud = async (firebaseUser: User) => {
     setSyncing(true);
     try {
+      console.log('🔄 Loading data for user:', firebaseUser.uid);
+
       // Load local data first (for migration)
       const localTasks = loadTasks();
       const localStats = loadStats();
+      console.log('📱 Local data:', { taskCount: localTasks.length, stats: localStats });
 
       // Migrate local data to cloud if needed
       await migrateLocalDataToCloud(firebaseUser, localTasks, localStats);
@@ -72,22 +75,27 @@ function App() {
       // Load from cloud
       const cloudTasks = await loadTasksFromCloud(firebaseUser);
       const cloudStats = await loadStatsFromCloud(firebaseUser);
+      console.log('☁️ Cloud data:', { taskCount: cloudTasks.length, stats: cloudStats });
 
-      setTasks(cloudTasks.length > 0 ? cloudTasks : localTasks);
-      setStats(cloudStats || localStats);
+      const finalTasks = cloudTasks.length > 0 ? cloudTasks : localTasks;
+      const finalStats = cloudStats || localStats;
+
+      console.log('✅ Using data:', { taskCount: finalTasks.length, stats: finalStats });
+
+      setTasks(finalTasks);
+      setStats(finalStats);
 
       // Check for daily reset
-      const { needsReset, incompleteDailies } = checkDailyReset(cloudTasks.length > 0 ? cloudTasks : localTasks);
+      const { needsReset, incompleteDailies } = checkDailyReset(finalTasks);
       if (needsReset && incompleteDailies.length > 0) {
         const totalDamage = incompleteDailies.reduce((sum, task) => sum + calculateDamage(task), 0);
-        const currentStats = cloudStats || localStats;
-        const newStats = takeDamage(currentStats, totalDamage);
+        const newStats = takeDamage(finalStats, totalDamage);
         setStats(newStats);
         await saveStatsToCloud(firebaseUser, newStats);
         showNotification(`❌ Lost ${totalDamage.toFixed(1)} HP for ${incompleteDailies.length} incomplete dailies!`);
       }
     } catch (error) {
-      console.error('Error loading cloud data:', error);
+      console.error('❌ Error loading cloud data:', error);
       // Fallback to local data
       setTasks(loadTasks());
       setStats(loadStats());
@@ -100,10 +108,13 @@ function App() {
   useEffect(() => {
     if (tasks.length > 0 || tasks.length === 0) {
       saveTasks(tasks); // Save locally
+      console.log('💾 Saved tasks to localStorage:', tasks.length);
+
       if (user) {
-        saveTasksToCloud(user, tasks).catch(err =>
-          console.error('Error saving tasks to cloud:', err)
-        );
+        console.log('☁️ Saving tasks to cloud for user:', user.uid);
+        saveTasksToCloud(user, tasks)
+          .then(() => console.log('✅ Tasks saved to cloud successfully'))
+          .catch(err => console.error('❌ Error saving tasks to cloud:', err));
       }
     }
   }, [tasks, user]);
@@ -112,19 +123,23 @@ function App() {
   useEffect(() => {
     if (stats) {
       saveStats(stats); // Save locally
+      console.log('💾 Saved stats to localStorage:', stats);
+
       if (user) {
-        saveStatsToCloud(user, stats).catch(err =>
-          console.error('Error saving stats to cloud:', err)
-        );
+        console.log('☁️ Saving stats to cloud for user:', user.uid);
+        saveStatsToCloud(user, stats)
+          .then(() => console.log('✅ Stats saved to cloud successfully'))
+          .catch(err => console.error('❌ Error saving stats to cloud:', err));
       }
     }
   }, [stats, user]);
 
   const handleSignOut = async () => {
     try {
+      // Sign out from Firebase
+      // Don't clear tasks/stats here - the auth state listener will handle UI state
+      // This prevents overwriting cloud data with empty arrays
       await signOut(auth);
-      setTasks([]);
-      setStats(null);
       showNotification('👋 Signed out successfully');
     } catch (error) {
       console.error('Sign out error:', error);

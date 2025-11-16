@@ -13,13 +13,16 @@ const getStatsPath = (userId: string) => `${getUserDocPath(userId)}/data/stats`;
  */
 export const saveTasksToCloud = async (user: User, tasks: Task[]): Promise<void> => {
   try {
-    const tasksRef = doc(db, getTasksPath(user.uid));
+    const path = getTasksPath(user.uid);
+    console.log(`☁️ Saving ${tasks.length} tasks to: ${path}`);
+    const tasksRef = doc(db, path);
     await setDoc(tasksRef, {
       tasks,
       updatedAt: new Date().toISOString(),
     });
+    console.log(`✅ Successfully saved ${tasks.length} tasks to cloud`);
   } catch (error) {
-    console.error('Error saving tasks to cloud:', error);
+    console.error('❌ Error saving tasks to cloud:', error);
     throw error;
   }
 };
@@ -29,17 +32,22 @@ export const saveTasksToCloud = async (user: User, tasks: Task[]): Promise<void>
  */
 export const loadTasksFromCloud = async (user: User): Promise<Task[]> => {
   try {
-    const tasksRef = doc(db, getTasksPath(user.uid));
+    const path = getTasksPath(user.uid);
+    console.log(`☁️ Loading tasks from: ${path}`);
+    const tasksRef = doc(db, path);
     const snapshot = await getDoc(tasksRef);
 
     if (snapshot.exists()) {
       const data = snapshot.data();
-      return data.tasks || [];
+      const tasks = data.tasks || [];
+      console.log(`✅ Loaded ${tasks.length} tasks from cloud`);
+      return tasks;
     }
 
+    console.log('ℹ️ No cloud data found, returning empty array');
     return [];
   } catch (error) {
-    console.error('Error loading tasks from cloud:', error);
+    console.error('❌ Error loading tasks from cloud:', error);
     return [];
   }
 };
@@ -49,13 +57,16 @@ export const loadTasksFromCloud = async (user: User): Promise<Task[]> => {
  */
 export const saveStatsToCloud = async (user: User, stats: UserStats): Promise<void> => {
   try {
-    const statsRef = doc(db, getStatsPath(user.uid));
+    const path = getStatsPath(user.uid);
+    console.log(`☁️ Saving stats to: ${path}`, stats);
+    const statsRef = doc(db, path);
     await setDoc(statsRef, {
       ...stats,
       updatedAt: new Date().toISOString(),
     });
+    console.log('✅ Successfully saved stats to cloud');
   } catch (error) {
-    console.error('Error saving stats to cloud:', error);
+    console.error('❌ Error saving stats to cloud:', error);
     throw error;
   }
 };
@@ -65,12 +76,14 @@ export const saveStatsToCloud = async (user: User, stats: UserStats): Promise<vo
  */
 export const loadStatsFromCloud = async (user: User): Promise<UserStats | null> => {
   try {
-    const statsRef = doc(db, getStatsPath(user.uid));
+    const path = getStatsPath(user.uid);
+    console.log(`☁️ Loading stats from: ${path}`);
+    const statsRef = doc(db, path);
     const snapshot = await getDoc(statsRef);
 
     if (snapshot.exists()) {
       const data = snapshot.data();
-      return {
+      const stats = {
         level: data.level,
         experience: data.experience,
         health: data.health,
@@ -78,11 +91,14 @@ export const loadStatsFromCloud = async (user: User): Promise<UserStats | null> 
         equippedHat: data.equippedHat,
         ownedHats: data.ownedHats || [],
       };
+      console.log('✅ Loaded stats from cloud:', stats);
+      return stats;
     }
 
+    console.log('ℹ️ No cloud stats found, returning null');
     return null;
   } catch (error) {
-    console.error('Error loading stats from cloud:', error);
+    console.error('❌ Error loading stats from cloud:', error);
     return null;
   }
 };
