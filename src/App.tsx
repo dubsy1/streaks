@@ -348,10 +348,10 @@ function App() {
   // Show loading while checking auth
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-ios-groupedBackground flex items-center justify-center font-sf">
         <div className="text-center">
-          <Zap className="animate-pulse text-primary-500 mx-auto mb-4" size={48} />
-          <p className="text-gray-600">Loading...</p>
+          <Zap className="animate-pulse text-ios-blue mx-auto mb-4" size={48} />
+          <p className="text-ios-secondaryLabel text-lg">Loading...</p>
         </div>
       </div>
     );
@@ -365,46 +365,41 @@ function App() {
   // Show loading while syncing
   if (syncing || !stats) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-ios-groupedBackground flex items-center justify-center font-sf">
         <div className="text-center">
-          <Zap className="animate-pulse text-primary-500 mx-auto mb-4" size={48} />
-          <p className="text-gray-600">Syncing your data...</p>
+          <Zap className="animate-pulse text-ios-blue mx-auto mb-4" size={48} />
+          <p className="text-ios-secondaryLabel text-lg">Syncing your data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Notification Toast */}
+    <div className="min-h-screen bg-ios-groupedBackground font-sf">
+      {/* iOS-Style Notification Toast */}
       {notification && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
-          <div className="bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg text-center font-medium">
+        <div className="fixed top-safe z-50 inset-x-0 flex justify-center px-4 pt-4 pointer-events-none">
+          <div className="bg-ios-secondaryGroupedBackground backdrop-blur-xl bg-opacity-95 text-ios-label px-5 py-3 rounded-ios-lg shadow-ios-lg text-center font-semibold text-base transform transition-all duration-300 ease-out pointer-events-auto">
             {notification}
           </div>
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Zap className="text-primary-600" size={32} />
-              <h1 className="text-4xl font-bold text-gray-800">Streaks</h1>
-            </div>
+      <div className="max-w-2xl mx-auto px-ios-md pb-24">
+        {/* iOS-Style Header */}
+        <div className="pt-safe px-ios-md pb-ios-lg">
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-[34px] font-bold text-ios-label tracking-tight leading-tight">Streaks</h1>
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium"
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-ios-fillSecondary hover:bg-ios-fillPrimary active:scale-95 transition-all duration-150"
             >
-              <LogOut size={16} />
-              <span className="hidden sm:inline">Sign Out</span>
+              <LogOut size={18} className="text-ios-secondaryLabel" />
             </button>
           </div>
-          <p className="text-gray-600 text-center">Track your habits, build streaks, level up!</p>
           {user && !user.isAnonymous && (
-            <p className="text-xs text-gray-500 text-center mt-1">
-              Signed in as {user.email || user.displayName || 'Apple User'} • Syncing across devices ☁️
+            <p className="text-[13px] text-ios-secondaryLabel font-medium tracking-tight">
+              {user.email || user.displayName || 'Apple User'}
             </p>
           )}
         </div>
@@ -415,27 +410,8 @@ function App() {
         {/* Stats Bar - Always visible */}
         <StatsBar stats={stats} />
 
-        {/* Navigation Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto">
-          {[
-            { id: 'tasks', label: '📝 Tasks' },
-            { id: 'shop', label: '🛒 Shop' },
-            { id: 'inventory', label: '🎒 Inventory' },
-            { id: 'statistics', label: '📊 Statistics' },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setCurrentView(tab.id as View)}
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
-                currentView === tab.id
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {/* Content Area */}
+        <div className="space-y-ios-md">
 
         {/* Content based on current view */}
         {currentView === 'tasks' && (
@@ -443,16 +419,16 @@ function App() {
             {/* Add Task Form */}
             <AddTaskForm onAdd={addTask} />
 
-            {/* Filter Tabs */}
-            <div className="flex gap-2 mb-6">
+            {/* iOS Segmented Control - Filter */}
+            <div className="bg-ios-fillTertiary p-0.5 rounded-ios inline-flex gap-0.5 mb-ios-md">
               {(['all', 'habit', 'daily', 'todo'] as const).map(f => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-4 py-2 rounded-lg font-medium capitalize transition-colors ${
+                  className={`px-4 py-1.5 rounded-[7px] text-[13px] font-semibold capitalize transition-all duration-150 ${
                     filter === f
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
+                      ? 'bg-ios-secondaryGroupedBackground text-ios-label shadow-ios-button'
+                      : 'text-ios-label hover:bg-ios-secondaryGroupedBackground hover:bg-opacity-50'
                   }`}
                 >
                   {f}
@@ -496,10 +472,29 @@ function App() {
         {currentView === 'statistics' && (
           <Statistics tasks={tasks} stats={stats} />
         )}
+        </div>
+      </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-600">
-          <p>Built with React + TypeScript + Vite</p>
+      {/* iOS-Style Tab Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-ios-secondaryGroupedBackground bg-opacity-95 backdrop-blur-xl border-t border-ios-gray5 safe-bottom z-40">
+        <div className="flex justify-around items-center px-2 py-1">
+          {[
+            { id: 'tasks', icon: '📝', label: 'Tasks' },
+            { id: 'shop', icon: '🛒', label: 'Shop' },
+            { id: 'inventory', icon: '🎒', label: 'Inventory' },
+            { id: 'statistics', icon: '📊', label: 'Stats' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setCurrentView(tab.id as View)}
+              className={`flex flex-col items-center justify-center py-1.5 px-4 min-w-[60px] transition-all duration-150 active:scale-95 ${
+                currentView === tab.id ? 'text-ios-blue' : 'text-ios-gray'
+              }`}
+            >
+              <span className="text-[26px] leading-none mb-0.5">{tab.icon}</span>
+              <span className="text-[10px] font-medium tracking-tight">{tab.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 

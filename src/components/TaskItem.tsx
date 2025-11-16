@@ -14,76 +14,81 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit }) => {
   const streak = calculateStreak(task);
 
   const difficultyColors = {
-    trivial: 'bg-gray-100 text-gray-700',
-    easy: 'bg-green-100 text-green-700',
-    medium: 'bg-yellow-100 text-yellow-700',
-    hard: 'bg-red-100 text-red-700',
+    trivial: 'bg-ios-fillSecondary text-ios-secondaryLabel',
+    easy: 'bg-ios-green bg-opacity-10 text-ios-green',
+    medium: 'bg-ios-orange bg-opacity-10 text-ios-orange',
+    hard: 'bg-ios-red bg-opacity-10 text-ios-red',
   };
 
   return (
-    <div className={`p-4 rounded-lg border-2 transition-all ${
-      completed
-        ? 'bg-green-50 border-green-300'
-        : 'bg-white border-gray-200 hover:border-gray-300'
+    <div className={`bg-ios-secondaryGroupedBackground rounded-ios-lg shadow-ios overflow-hidden transition-all duration-200 ${
+      completed ? 'opacity-60' : ''
     }`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            {task.emoji && <span className="text-xl">{task.emoji}</span>}
-            <h3 className={`font-medium ${completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+      <div className="px-ios-md py-ios-sm flex items-center justify-between gap-3">
+        {/* Left: Checkbox/Action Button */}
+        <button
+          onClick={() => onToggle(task.id)}
+          className="flex-shrink-0 active:scale-95 transition-transform duration-150"
+        >
+          {task.type === 'habit' && task.isPositive === false ? (
+            <div className="w-7 h-7 rounded-full bg-ios-red bg-opacity-10 flex items-center justify-center">
+              <X size={18} className="text-ios-red" strokeWidth={3} />
+            </div>
+          ) : (
+            <div
+              className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                completed
+                  ? 'bg-ios-blue border-ios-blue'
+                  : 'border-ios-gray3 hover:border-ios-blue'
+              }`}
+            >
+              {completed && <Check size={16} className="text-white" strokeWidth={3} />}
+            </div>
+          )}
+        </button>
+
+        {/* Middle: Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            {task.emoji && <span className="text-lg leading-none">{task.emoji}</span>}
+            <h3
+              className={`text-[17px] font-semibold truncate ${
+                completed ? 'line-through text-ios-tertiaryLabel' : 'text-ios-label'
+              }`}
+            >
               {task.title}
             </h3>
             {streak > 0 && (
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
-                <Flame size={14} />
-                <span>{streak}</span>
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-ios-orange bg-opacity-15 rounded-full flex-shrink-0">
+                <Flame size={12} className="text-ios-orange" fill="currentColor" />
+                <span className="text-[11px] font-bold text-ios-orange tabular-nums">{streak}</span>
               </div>
             )}
           </div>
 
           {task.description && (
-            <p className="text-sm text-gray-600 mb-2">{task.description}</p>
+            <p className="text-[13px] text-ios-secondaryLabel line-clamp-1">{task.description}</p>
           )}
 
-          <div className="flex items-center gap-2">
-            <span className={`text-xs px-2 py-1 rounded ${difficultyColors[task.difficulty]}`}>
+          <div className="flex items-center gap-2 mt-1">
+            <span
+              className={`text-[11px] px-2 py-0.5 rounded-md font-semibold uppercase tracking-wide ${difficultyColors[task.difficulty]}`}
+            >
               {task.difficulty}
             </span>
-            <span className="text-xs text-gray-500 capitalize">{task.type}</span>
+            <span className="text-[11px] text-ios-tertiaryLabel font-medium capitalize">
+              {task.type}
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {task.type === 'habit' && task.isPositive === false ? (
-            <button
-              onClick={() => onToggle(task.id)}
-              className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
-              title="Mark as done (bad habit)"
-            >
-              <X size={20} />
-            </button>
-          ) : (
-            <button
-              onClick={() => onToggle(task.id)}
-              className={`p-2 rounded-full transition-colors ${
-                completed
-                  ? 'bg-green-200 text-green-700'
-                  : 'bg-gray-100 hover:bg-green-100 text-gray-600 hover:text-green-600'
-              }`}
-              title="Mark as complete"
-            >
-              <Check size={20} />
-            </button>
-          )}
-
-          <button
-            onClick={() => onEdit(task)}
-            className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition-colors"
-            title="Edit task"
-          >
-            <Pencil size={18} />
-          </button>
-        </div>
+        {/* Right: Edit Button */}
+        <button
+          onClick={() => onEdit(task)}
+          className="flex-shrink-0 w-9 h-9 rounded-full bg-ios-fillSecondary hover:bg-ios-fillPrimary flex items-center justify-center active:scale-95 transition-all duration-150"
+        >
+          <Pencil size={16} className="text-ios-blue" />
+        </button>
       </div>
     </div>
   );

@@ -11,57 +11,74 @@ const StatsBar: React.FC<StatsBarProps> = ({ stats }) => {
   const healthPercentage = (stats.health / MAX_HEALTH) * 100;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-      <div className="space-y-3">
-        {/* Level and Gold */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Star className="text-yellow-500" size={24} />
-            <span className="text-2xl font-bold text-gray-800">Level {stats.level}</span>
+    <div className="bg-ios-secondaryGroupedBackground rounded-ios-lg shadow-ios overflow-hidden mb-ios-md">
+      {/* Level and Gold Row */}
+      <div className="flex items-center justify-between px-ios-md py-ios-sm bg-gradient-to-b from-ios-fillSecondary to-transparent">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-full bg-ios-blue flex items-center justify-center shadow-ios-button">
+            <Star className="text-white" size={20} fill="white" />
           </div>
-          <div className="flex items-center gap-2">
-            <Coins className="text-yellow-500" size={20} />
-            <span className="text-xl font-semibold text-gray-700">{stats.gold.toFixed(1)}</span>
+          <div>
+            <p className="text-[11px] text-ios-tertiaryLabel font-medium uppercase tracking-wide">Level</p>
+            <p className="text-[22px] font-bold text-ios-label leading-none">{stats.level}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div>
+            <p className="text-[11px] text-ios-tertiaryLabel font-medium uppercase tracking-wide text-right">Gold</p>
+            <p className="text-[22px] font-bold text-ios-yellow leading-none text-right">{stats.gold.toFixed(0)}</p>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-ios-yellow flex items-center justify-center shadow-ios-button">
+            <Coins className="text-white" size={20} fill="white" />
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Bars */}
+      <div className="px-ios-md py-ios-md space-y-ios-sm border-t border-ios-gray6">
+        {/* Health Bar */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <Heart className="text-ios-red" size={14} fill="currentColor" />
+              <span className="text-[13px] font-semibold text-ios-label">Health</span>
+            </div>
+            <span className="text-[13px] font-semibold text-ios-secondaryLabel tabular-nums">
+              {stats.health.toFixed(0)}/{MAX_HEALTH}
+            </span>
+          </div>
+          <div className="w-full bg-ios-fillTertiary rounded-full h-2 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ease-out ${
+                healthPercentage > 50
+                  ? 'bg-ios-red'
+                  : healthPercentage > 20
+                  ? 'bg-ios-orange'
+                  : 'bg-ios-pink'
+              }`}
+              style={{ width: `${healthPercentage}%` }}
+            />
           </div>
         </div>
 
-        {/* Health and XP Bars */}
-        <div className="space-y-2">
-          {/* Health Bar */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1">
-                <Heart className="text-red-500" size={16} />
-                <span className="text-sm font-medium text-gray-600">HP</span>
+        {/* XP Bar */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3.5 h-3.5 rounded-full bg-ios-blue flex items-center justify-center">
+                <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
               </div>
-              <span className="text-sm font-medium text-gray-700">
-                {stats.health.toFixed(0)} / {MAX_HEALTH}
-              </span>
+              <span className="text-[13px] font-semibold text-ios-label">Experience</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div
-                className={`h-3 rounded-full transition-all duration-300 ${
-                  healthPercentage > 50 ? 'bg-red-500' : healthPercentage > 20 ? 'bg-orange-500' : 'bg-red-700'
-                }`}
-                style={{ width: `${healthPercentage}%` }}
-              />
-            </div>
+            <span className="text-[13px] font-semibold text-ios-secondaryLabel tabular-nums">
+              {stats.experience.toFixed(0)}/{XP_PER_LEVEL}
+            </span>
           </div>
-
-          {/* XP Bar */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium text-gray-600">XP</span>
-              <span className="text-sm font-medium text-gray-700">
-                {stats.experience.toFixed(0)} / {XP_PER_LEVEL}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div
-                className="bg-blue-500 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${xpPercentage}%` }}
-              />
-            </div>
+          <div className="w-full bg-ios-fillTertiary rounded-full h-2 overflow-hidden">
+            <div
+              className="h-full bg-ios-blue rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${xpPercentage}%` }}
+            />
           </div>
         </div>
       </div>
