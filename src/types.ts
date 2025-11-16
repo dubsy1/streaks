@@ -12,6 +12,9 @@ export interface Task {
   dueDate?: string; // For todos
   repeatDays?: number[]; // For dailies: 0-6 (Sun-Sat)
   archived: boolean;
+  emoji?: string; // Optional emoji for the task
+  completedAt?: string; // ISO timestamp when todo was completed
+  resetTime?: string; // Time when habit/daily should reset (HH:MM format)
 }
 
 export interface UserStats {

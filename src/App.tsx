@@ -23,9 +23,12 @@ import AddTaskForm from './components/AddTaskForm';
 import CharacterDisplay from './components/CharacterDisplay';
 import Shop from './components/Shop';
 import Inventory from './components/Inventory';
+import EditTaskModal from './components/EditTaskModal';
+import ArchivedTodos from './components/ArchivedTodos';
+import Statistics from './components/Statistics';
 import { Zap, LogOut } from 'lucide-react';
 
-type View = 'tasks' | 'character' | 'shop' | 'inventory';
+type View = 'tasks' | 'shop' | 'inventory' | 'statistics';
 
 const HABIT_COOLDOWN_MINUTES = 5; // Prevent spam clicking habits
 
@@ -38,6 +41,7 @@ function App() {
   const [currentView, setCurrentView] = useState<View>('tasks');
   const [notification, setNotification] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   // Monitor authentication state
   useEffect(() => {
@@ -192,10 +196,14 @@ function App() {
         return;
       }
 
-      // Complete task - add today's date
+      // Complete task - add today's date and timestamp for todos
       const updatedTasks = tasks.map(t =>
         t.id === taskId
-          ? { ...t, completedDates: [...t.completedDates, today] }
+          ? {
+              ...t,
+              completedDates: [...t.completedDates, today],
+              completedAt: t.type === 'todo' ? new Date().toISOString() : t.completedAt,
+            }
           : t
       );
       setTasks(updatedTasks);
@@ -240,9 +248,21 @@ function App() {
     }
   };
 
-  const deleteTask = (taskId: string) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      setTasks(tasks.filter(t => t.id !== taskId));
+  const updateTask = (updatedTask: Task) => {
+    setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t));
+    showNotification('✅ Task updated successfully');
+  };
+
+  const archiveTask = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      const archivedTask = {
+        ...task,
+        archived: true,
+        completedAt: task.type === 'todo' ? new Date().toISOString() : task.completedAt,
+      };
+      setTasks(tasks.map(t => t.id === taskId ? archivedTask : t));
+      showNotification(`📦 ${task.type.charAt(0).toUpperCase() + task.type.slice(1)} archived`);
     }
   };
 
@@ -295,7 +315,19 @@ function App() {
     return filtered;
   };
 
+  const getArchivedTodos = () => {
+    return tasks
+      .filter(t => t.archived && t.type === 'todo')
+      .sort((a, b) => {
+        // Sort by completion date, most recent first
+        const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+        const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+  };
+
   const filteredTasks = getFilteredTasks();
+  const archivedTodos = getArchivedTodos();
   const equippedHat = stats?.equippedHat ? HATS.find(h => h.id === stats.equippedHat) : undefined;
 
   // Show loading while checking auth
@@ -362,16 +394,19 @@ function App() {
           )}
         </div>
 
-        {/* Stats with Character - Always visible */}
-        <StatsBar stats={stats} equippedHat={equippedHat} />
+        {/* Character Display - Always visible */}
+        <CharacterDisplay equippedHat={equippedHat} />
+
+        {/* Stats Bar - Always visible */}
+        <StatsBar stats={stats} />
 
         {/* Navigation Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto">
           {[
             { id: 'tasks', label: '📝 Tasks' },
-            { id: 'character', label: '👤 Character' },
             { id: 'shop', label: '🛒 Shop' },
             { id: 'inventory', label: '🎒 Inventory' },
+            { id: 'statistics', label: '📊 Statistics' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -422,16 +457,17 @@ function App() {
                     key={task.id}
                     task={task}
                     onToggle={toggleTask}
-                    onDelete={deleteTask}
+                    onEdit={setEditingTask}
                   />
                 ))
               )}
             </div>
-          </>
-        )}
 
-        {currentView === 'character' && (
-          <CharacterDisplay equippedHat={equippedHat} />
+            {/* Archived Todos - Only show when viewing all or todos */}
+            {(filter === 'all' || filter === 'todo') && (
+              <ArchivedTodos archivedTodos={archivedTodos} />
+            )}
+          </>
         )}
 
         {currentView === 'shop' && (
@@ -442,11 +478,25 @@ function App() {
           <Inventory stats={stats} onEquip={equipHat} />
         )}
 
+        {currentView === 'statistics' && (
+          <Statistics tasks={tasks} stats={stats} />
+        )}
+
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-600">
           <p>Built with React + TypeScript + Vite</p>
         </div>
       </div>
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          onClose={() => setEditingTask(null)}
+          onSave={updateTask}
+          onArchive={archiveTask}
+        />
+      )}
     </div>
   );
 }

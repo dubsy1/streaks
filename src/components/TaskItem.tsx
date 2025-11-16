@@ -1,15 +1,15 @@
 import React from 'react';
 import { Task } from '../types';
 import { calculateStreak, isCompletedToday } from '../utils/streakUtils';
-import { Check, X, Trash2, Flame } from 'lucide-react';
+import { Check, X, Pencil, Flame } from 'lucide-react';
 
 interface TaskItemProps {
   task: Task;
   onToggle: (taskId: string) => void;
-  onDelete: (taskId: string) => void;
+  onEdit: (task: Task) => void;
 }
 
-const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete }) => {
+const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit }) => {
   const completed = isCompletedToday(task);
   const streak = calculateStreak(task);
 
@@ -29,6 +29,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete }) => {
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
+            {task.emoji && <span className="text-xl">{task.emoji}</span>}
             <h3 className={`font-medium ${completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
               {task.title}
             </h3>
@@ -76,11 +77,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onDelete }) => {
           )}
 
           <button
-            onClick={() => onDelete(task.id)}
-            className="p-2 rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 transition-colors"
-            title="Delete task"
+            onClick={() => onEdit(task)}
+            className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition-colors"
+            title="Edit task"
           >
-            <Trash2 size={18} />
+            <Pencil size={18} />
           </button>
         </div>
       </div>
