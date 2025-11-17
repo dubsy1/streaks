@@ -47,8 +47,25 @@ function App() {
     localStorage.getItem('onboardingComplete') === 'true'
   );
 
+  // DEMO MODE: Load local data immediately
+  useEffect(() => {
+    const DEMO_MODE = true;
+    if (DEMO_MODE) {
+      setAuthLoading(false);
+      // Load from localStorage
+      const localTasks = loadTasks();
+      const localStats = loadStats();
+      setTasks(localTasks);
+      setStats(localStats);
+      return;
+    }
+  }, []);
+
   // Monitor authentication state
   useEffect(() => {
+    const DEMO_MODE = true;
+    if (DEMO_MODE) return; // Skip Firebase auth in demo mode
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       setAuthLoading(false);
