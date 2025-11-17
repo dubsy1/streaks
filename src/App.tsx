@@ -415,8 +415,8 @@ function App() {
     <div className="min-h-screen bg-ios-groupedBackground font-sf">
       {/* iOS-Style Notification Toast */}
       {notification && (
-        <div className="fixed top-safe z-50 inset-x-0 flex justify-center px-4 pt-4 pointer-events-none">
-          <div className="bg-ios-secondaryGroupedBackground backdrop-blur-xl bg-opacity-95 text-ios-label px-5 py-3 rounded-ios-lg shadow-ios-lg text-center font-semibold text-base transform transition-all duration-300 ease-out pointer-events-auto">
+        <div className="fixed top-4 z-50 inset-x-0 flex justify-center px-4 pointer-events-none">
+          <div className="bg-white border border-ios-gray6 text-ios-label px-5 py-3 rounded-ios-lg text-center font-semibold text-base transform transition-all duration-300 ease-out pointer-events-auto">
             {notification}
           </div>
         </div>
@@ -424,7 +424,7 @@ function App() {
 
       <div className="max-w-2xl mx-auto px-ios-md pb-24">
         {/* iOS-Style Header */}
-        <div className="pt-safe px-ios-md pb-ios-lg">
+        <div className="pt-ios-lg px-ios-md pb-ios-lg">
           <div className="flex items-center justify-between mb-1">
             <h1 className="text-[34px] font-bold text-ios-label tracking-tight leading-tight">Streaks</h1>
             {user && <UserProfile user={user} onSignOut={handleSignOut} />}

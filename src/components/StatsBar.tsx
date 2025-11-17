@@ -11,9 +11,9 @@ const StatsBar: React.FC<StatsBarProps> = ({ stats }) => {
   const healthPercentage = (stats.health / MAX_HEALTH) * 100;
 
   return (
-    <div className="bg-ios-secondaryGroupedBackground rounded-ios-lg overflow-hidden mb-ios-md border border-ios-gray6">
+    <div className="bg-white rounded-ios-lg overflow-hidden mb-ios-md border border-ios-gray6">
       {/* Level and Gold Row */}
-      <div className="flex items-center justify-between px-ios-md py-ios-sm bg-gradient-to-b from-ios-fillSecondary to-transparent">
+      <div className="flex items-center justify-between px-ios-md py-ios-sm">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-full bg-ios-blue flex items-center justify-center">
             <Star className="text-white" size={20} fill="white" />

@@ -7,15 +7,15 @@ interface CharacterDisplayProps {
 
 const CharacterDisplay: React.FC<CharacterDisplayProps> = ({ equippedHat }) => {
   return (
-    <div className="bg-ios-secondaryGroupedBackground rounded-ios-lg overflow-hidden mb-ios-md border border-ios-gray6">
+    <div className="bg-white rounded-ios-lg overflow-hidden mb-ios-md border border-ios-gray6">
       {/* Character Container */}
-      <div className="relative flex justify-center items-center py-ios-xl px-ios-md bg-gradient-to-b from-ios-fillSecondary to-transparent">
+      <div className="relative flex justify-center items-center py-ios-xl px-ios-md">
         <div className="relative w-40 h-40">
           {/* Character base image */}
           <img
             src="/character.png"
             alt="Your character"
-            className="w-full h-full object-contain drop-shadow-lg"
+            className="w-full h-full object-contain"
             onError={(e) => {
               // Fallback if image doesn't exist
               e.currentTarget.src = 'data:image/svg+xml,' + encodeURIComponent(`
@@ -34,7 +34,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({ equippedHat }) => {
             <img
               src={equippedHat.image}
               alt={equippedHat.name}
-              className="absolute top-0 left-0 w-full h-full object-contain drop-shadow-lg"
+              className="absolute top-0 left-0 w-full h-full object-contain"
               style={{ transform: 'translateY(-10%)' }}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';

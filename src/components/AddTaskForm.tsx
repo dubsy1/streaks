@@ -66,7 +66,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAdd }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-ios-secondaryGroupedBackground rounded-ios-lg border border-ios-gray6 overflow-hidden mb-ios-md">
+    <form onSubmit={handleSubmit} className="bg-white rounded-ios-lg border border-ios-gray6 overflow-hidden mb-ios-md">
       {/* Header */}
       <div className="flex items-center justify-between px-ios-md py-ios-sm border-b border-ios-gray6">
         <h3 className="text-[17px] font-semibold text-ios-label">New Task</h3>
