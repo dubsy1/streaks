@@ -185,25 +185,143 @@ service cloud.firestore {
    **Key ID**: (from Step 3.4 of Apple Developer setup)
    - Enter your Key ID (10 characters, e.g., `AB12CD34EF`)
 
+   ℹ️ **What is a Key ID?**
+
+   The **Key ID** (also known as the **"kid"** - Key Identifier) is a unique identifier for your Apple Sign-In private key. When your app authenticates users with Apple, it creates a digitally signed JSON Web Token (JWT) to prove its identity. This JWT contains:
+
+   - **Header**: Includes the "kid" field so Apple knows which public key to use for verification
+   - **Payload**: Contains your Team ID, Service ID, and authentication details
+   - **Signature**: Created using your private key
+
+   Think of it like a key ring with multiple keys - the Key ID tells Apple "use THIS specific key to verify my signature." Without the correct Key ID, Apple won't know which public key matches your private key, and authentication will fail.
+
+   **Where to find your Key ID:**
+   - When you created your key in Apple Developer Console (Part 1, Step 3.4)
+   - You saw a 10-character alphanumeric code like `AB12CD34EF` or `XY9876ZABC`
+   - This is displayed once when you download the `.p8` file
+   - You can also see it anytime by going to: Apple Developer Console → Keys → Click on your key name
+
+   **Important Notes:**
+   - ✅ Must be EXACTLY 10 characters
+   - ✅ Case-sensitive (uppercase letters and numbers)
+   - ✅ Associated with your downloaded `.p8` private key file
+   - ⚠️ If you enter the wrong Key ID, Apple Sign-In will fail with "Invalid client"
+
+   ---
+
    **Private Key**: (from the .p8 file you downloaded)
-   - Open the `.p8` file you downloaded in a text editor
-   - Copy the ENTIRE contents (including the BEGIN and END lines)
+
+   ℹ️ **What is a Private Key?**
+
+   The **Private Key** is the secret cryptographic key that your app uses to prove its identity to Apple. It's stored in the `.p8` file you downloaded from Apple Developer Console.
+
+   **How it works:**
+   1. Your app creates a JWT (JSON Web Token) with authentication details
+   2. Signs the JWT with this private key using the ES256 algorithm (Elliptic Curve Digital Signature Algorithm with SHA-256)
+   3. Sends the signed JWT to Apple
+   4. Apple uses the corresponding public key (which they have) to verify the signature
+   5. If verification succeeds, Apple knows the request is genuinely from your app
+
+   **Private vs Public Keys:**
+   - 🔐 **Private Key** (what you're pasting): You keep this SECRET. Never share it publicly!
+   - 🔓 **Public Key**: Apple keeps this. They use it to verify your signatures.
+   - These are a mathematically linked pair - data signed with the private key can ONLY be verified with its corresponding public key
+
+   **How to get your Private Key:**
+   - Open the `.p8` file you downloaded in a text editor (Notepad, TextEdit, VS Code, etc.)
+   - The filename looks like: `AuthKey_AB12CD34EF.p8` (where `AB12CD34EF` is your Key ID)
+   - Copy the ENTIRE contents, including the BEGIN and END lines
    - Example format:
    ```
    -----BEGIN PRIVATE KEY-----
-   MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg...
+   MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg
+   5J9xPqGlKj3Hzx7Y2vN8mR4kT6wQ1eS3cA9pB7fD2iKgCgYI
+   KoZIzj0DAQehRANCAAS8J2xYGKxPRkj5T9L3nB6vM8oQ2cF4
+   6pR7sN1wK9jX8hY4eD2fG5bA3kT7mP9cL6xN8sE1jR4vB9wH
    ...more lines...
    -----END PRIVATE KEY-----
    ```
-   - Paste it into the Private Key field
+   - Paste it into the Private Key field in Firebase
 
-5. **Get OAuth Redirect URI**
-   - Before clicking Save, you'll see a field labeled **"OAuth redirect URI"**
-   - Copy this URL (it should be: `https://streaks-f084b.firebaseapp.com/__/auth/handler`)
-   - ⚠️ Make sure this matches what you entered in Apple Developer Console Step 2.6
-   - If different, go back to Apple Developer Console and update it
+   **Important Notes:**
+   - ✅ Must include `-----BEGIN PRIVATE KEY-----` at the start
+   - ✅ Must include `-----END PRIVATE KEY-----` at the end
+   - ✅ Include ALL lines in between (don't truncate)
+   - ✅ Preserve exact formatting (line breaks matter)
+   - ⚠️ This file can ONLY be downloaded ONCE from Apple Developer Console
+   - 🔐 **Security**: Store this file securely! Anyone with this key can impersonate your app
+   - 🔐 Never commit the `.p8` file to version control (add `*.p8` to your `.gitignore`)
+   - 🔐 Never share this key publicly or in screenshots
 
-6. **Save**
+   **If you lost your .p8 file:**
+   - You cannot re-download it from Apple
+   - You must create a new key in Apple Developer Console
+   - Go to Keys → + button → Create a new Sign in with Apple key
+   - Download the new `.p8` file immediately and store it safely
+   - Update Firebase with the new Key ID and Private Key
+
+   ---
+
+   **Authorization Callback URL**
+
+   ℹ️ **What is this URL?**
+
+   After a user signs in with Apple, Apple needs to redirect them back to your app. The **Authorization Callback URL** (also called OAuth Redirect URI) is the destination URL where Apple sends the user after authentication.
+
+   **Your callback URL should be:**
+   ```
+   https://streaks-f084b.firebaseapp.com/__/auth/handler
+   ```
+
+   **Understanding the URL structure:**
+   - `https://` - Must be HTTPS (required for security)
+   - `streaks-f084b` - Your Firebase project ID
+   - `.firebaseapp.com` - Firebase's hosting domain
+   - `/__/auth/handler` - Firebase's authentication handler endpoint
+
+   **Why this matters:**
+   1. **User Experience**: After clicking "Sign in with Apple", users see Apple's login screen
+   2. **Authentication**: User enters their Apple ID and password
+   3. **Consent**: Apple shows what data will be shared (name, email)
+   4. **Redirect**: Apple sends user back to this callback URL with an authentication token
+   5. **Completion**: Firebase receives the token and signs the user into your app
+
+   **What you need to do:**
+
+   ✅ **Verify this URL matches Apple Developer Console:**
+   - Go to: Apple Developer Console → Identifiers → Your Service ID (e.g., `com.yourname.streaks.web`)
+   - Click on it → Configure Sign in with Apple
+   - Under **"Return URLs"**, you should see this exact URL
+   - If it doesn't match, update it in Apple Developer Console (from Part 1, Step 2.6)
+
+   ✅ **Additional setup to verify your domain with Apple:**
+
+   Apple requires you to prove you own the domain before allowing authentication. For Firebase hosting, this is automatically handled by Firebase. However, you may need to:
+
+   1. **Verify domain ownership** (usually automatic with Firebase)
+   2. **Add domain to Apple's allowlist** in your Service ID configuration
+   3. **Test on HTTPS** - Apple Sign-In will NOT work on `http://localhost` in production mode
+      - Exception: You can test locally using Firebase emulators or Vite preview on `localhost`
+
+   📚 **Learn more:**
+   - Apple's domain verification: https://developer.apple.com/help/account/configure-app-capabilities/configure-sign-in-with-apple-for-the-web
+   - Firebase Auth domains: https://firebase.google.com/docs/auth/web/redirect-best-practices
+
+   **Common issues with callback URLs:**
+   - ❌ **Mismatch error**: "redirect_uri_mismatch" means the URL doesn't match what's in Apple Developer Console
+   - ❌ **Not authorized**: Domain isn't added to Apple's allowed domains list
+   - ❌ **Invalid domain**: Using HTTP instead of HTTPS
+   - ❌ **Wrong URL format**: Missing `/__/auth/handler` endpoint
+
+   **If you deploy to a custom domain:**
+   - You'll need to add your custom domain (e.g., `https://streaks.yourdomain.com`) to:
+     1. Firebase Console → Authentication → Settings → Authorized domains
+     2. Apple Developer Console → Service ID → Return URLs
+     3. Both locations must match exactly
+
+   ---
+
+7. **Save**
    - Click **Save**
    - ✅ **Apple Sign-In is configured in Firebase!**
 
