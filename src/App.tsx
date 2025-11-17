@@ -47,25 +47,8 @@ function App() {
     localStorage.getItem('onboardingComplete') === 'true'
   );
 
-  // DEMO MODE: Load local data immediately
-  useEffect(() => {
-    const DEMO_MODE = true;
-    if (DEMO_MODE) {
-      setAuthLoading(false);
-      // Load from localStorage
-      const localTasks = loadTasks();
-      const localStats = loadStats();
-      setTasks(localTasks);
-      setStats(localStats);
-      return;
-    }
-  }, []);
-
   // Monitor authentication state
   useEffect(() => {
-    const DEMO_MODE = true;
-    if (DEMO_MODE) return; // Skip Firebase auth in demo mode
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       setAuthLoading(false);
@@ -373,12 +356,8 @@ function App() {
   const archivedTodos = getArchivedTodos();
   const equippedHat = stats?.equippedHat ? HATS.find(h => h.id === stats.equippedHat) : undefined;
 
-  // DEMO MODE: Skip auth for iOS testing
-  // Remove this after Firebase iOS is configured
-  const DEMO_MODE = true;
-
   // Show loading while checking auth
-  if (authLoading && !DEMO_MODE) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-ios-groupedBackground flex items-center justify-center font-sf">
         <div className="text-center">
@@ -390,7 +369,7 @@ function App() {
   }
 
   // Show login screen if not authenticated
-  if (!user && !DEMO_MODE) {
+  if (!user) {
     return <LoginScreen onLogin={() => {}} />;
   }
 
@@ -427,12 +406,7 @@ function App() {
         <div className="pt-ios-lg px-ios-md pb-ios-lg">
           <div className="flex items-center justify-between mb-1">
             <h1 className="text-[34px] font-bold text-ios-label tracking-tight leading-tight">Streaks</h1>
-            {user && <UserProfile user={user} onSignOut={handleSignOut} />}
-            {DEMO_MODE && !user && (
-              <div className="w-9 h-9 rounded-full bg-ios-blue flex items-center justify-center text-white font-bold text-[15px]">
-                DM
-              </div>
-            )}
+            <UserProfile user={user} onSignOut={handleSignOut} />
           </div>
         </div>
 
