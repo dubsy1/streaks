@@ -1,0 +1,9 @@
+# SIE Parser Requirements
+# För Mac med Python 3
+
+# tkinter kommer vanligtvis med Python på Mac
+# Om det saknas: brew install python-tk
+
+# För framtida Excel-export (kommer i nästa fas)
+# openpyxl==3.1.2
+# xlsxwriter==3.1.9

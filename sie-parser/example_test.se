@@ -1,0 +1,47 @@
+#FLAGGA 0
+#FORMAT PC8
+#SIETYP 4
+#PROGRAM "Fortnox" 3.57.11
+#GEN 20250904
+#FNR "805767"
+#FNAMN "FHG i Sverige AB (Movent Nord)"
+#ADRESS "Anna Holm" "Björkhagsv 811 94 Sandviken" "" "073-0707450"
+#RAR 0 20250101 20251231
+#RAR -1 20240101 20241231
+#ORGNR "559161-8284"
+#OMFATTN "20250831"
+#KPTYP "EUBAS97"
+#KONTO 1010 "Utvecklingsgifter"
+#SRU 1010 7201
+#KONTO 1011 "Balanserade utgifter för forskning och utveckling"
+#SRU 1011 7201
+#KONTO 1012 "Balanserade utgifter för programvaror"
+#SRU 1012 7201
+#KONTO 1018 "Ackumulerade nedskrivningar på balanserade utgifter"
+#SRU 1018 7201
+#KONTO 1019 "Ackumulerade avskrivningar på balanserade utgifter"
+#SRU 1019 7201
+#KONTO 1030 "Patent"
+#SRU 1030 7201
+#KONTO 1038 "Ackumulerade nedskrivningar på patent"
+#SRU 1038 7201
+#KONTO 1039 "Ackumulerade avskrivningar på patent"
+#SRU 1039 7201
+#KONTO 1060 "Hyresrätter tomträtter och liknande"
+#SRU 1060 7201
+#KONTO 1069 "Ackumulerade avskrivningar på hyresrätter tomträtter och liknande"
+#SRU 1069 7201
+#KONTO 1070 "Goodwill"
+#SRU 1070 7201
+#KONTO 1078 "Ackumulerade nedskrivningar på goodwill"
+#SRU 1078 7201
+#KONTO 1079 "Ackumulerade avskrivningar på goodwill"
+#SRU 1079 7201
+#KONTO 1110 "Byggnader"
+#SRU 1110 7214
+#KONTO 1118 "Ackumulerade nedskrivningar på byggnader"
+#SRU 1118 7214
+#KONTO 1119 "Ackumulerade avskrivningar på byggnader"
+#SRU 1119 7214
+#KONTO 1130 "Mark"
+#SRU 1130 7214
